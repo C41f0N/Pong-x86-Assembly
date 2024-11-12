@@ -16,6 +16,11 @@ INCLUDE irvine32.inc
 	playerOffset = 2;
 	playerWidth = 2;
 	
+	; // Ball info
+	ballx DWORD ?;
+	bally DWORD ?;
+
+	; // Key info
 	upKey = 26h;
 	downKey = 28h;
 	quitKey = 51h;
@@ -98,6 +103,7 @@ INCLUDE irvine32.inc
 
 					notPlayer2:
 						; Check if ball
+					
 					JMP isEmpty;
 
 					isEmpty:
@@ -169,13 +175,31 @@ INCLUDE irvine32.inc
 
 		ret;
 	handleInput ENDP
-
-	main PROC
-
+	
+	initialize PROC
 		MOV player1, 10;
 		MOV player2, 10;
 
-		loop1:
+		MOV ebx, 2;
+		MOV eax, screenWidth;
+		MOV edx, 0;
+		DIV ebx;
+		MOV ballX, eax;
+
+		MOV eax, screenHeight;
+		MOV edx, 0;
+		DIV ebx;
+		MOV ballY, eax;
+		
+		ret;
+	initialize ENDP
+
+	main PROC
+
+		CALL initialize;
+		
+		gameLoop:
+
 			CALL renderScreen;
 			CALL handleInput;
 			CALL dumpRegs;
@@ -184,7 +208,7 @@ INCLUDE irvine32.inc
 
 			CALL delay;
 			
-		LOOP loop1;
+		JMP gameLoop;
 
 
 	main ENDP
