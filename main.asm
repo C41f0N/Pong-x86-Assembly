@@ -2,13 +2,15 @@ INCLUDE irvine32.inc
 
 .data
 	; // Screen Info
-	screenHeight DWORD 20;
-	screenWidth DWORD 80;
+	screenHeight = 20;
+	screenWidth = 80;
 
-	borderPixel DWORD 'X';
-	backgroundPixel DWORD ' ';
-	playerPixel DWORD '|';
-	ballPixel DWORD 'O'
+	pixels BYTE screenHeight DUP(screenWidth DUP(?));
+
+	borderPixel BYTE 'X';
+	backgroundPixel BYTE ' ';
+	playerPixel BYTE '|';
+	ballPixel BYTE 'O'
 
 	; // Players info
 	player1 DWORD ?;
@@ -30,6 +32,48 @@ INCLUDE irvine32.inc
 	quitKey = 51h;
 
 .code
+	
+	; // Function to display the screen
+	displayScreen PROC
+		
+		MOV dh, 0;
+		MOV dl, 0;
+		CALL goToXY;
+
+		MOV esi, 0;
+		everyRow:
+
+			MOV edi, 0;
+
+			everyPixel:
+
+				MOV ebx, eax;
+
+				MOV eax, esi;
+				MOV ecx, screenWidth;
+				MUL ecx;
+				ADD eax, edi;
+
+				XCHG eax, ebx;
+
+				MOVZX eax, [pixels + ebx];
+
+				CALL writeChar;
+
+			INC edi;
+			CMP edi, screenWidth;
+			JS everyPixel;
+
+			CALL crlf;
+
+		INC esi;
+		CMP esi, screenHeight;
+		JL everyRow;
+
+
+		ret;
+	displayScreen ENDP
+
 	; // Function to render the screen
 	renderScreen PROC
 		
@@ -37,12 +81,9 @@ INCLUDE irvine32.inc
 		MOV dl, 0;
 		CALL goToXY;
 
-		MOV ecx, screenHeight;
 		MOV esi, 0;
-	
 		everyRow:
-			MOV ebx, ecx;
-			MOV ecx, screenWidth;
+			MOV edi, 0;
 			MOV edi, 0;
 
 			everyPixel:
@@ -68,8 +109,8 @@ INCLUDE irvine32.inc
 				JMP isNotBorder;
 
 				isBorder:
-					MOV eax, borderPixel;
-					JMP printPixel;
+					MOVZX eax, borderPixel;
+					JMP storePixel;
 				
 				isNotBorder:
 					
@@ -113,19 +154,30 @@ INCLUDE irvine32.inc
 						CMP edi, ballX;
 						JNE isEmpty;
 
-						MOV eax, ballPixel;
+						MOVZX eax, ballPixel;
 
-					JMP printPixel;
+					JMP storePixel;
 
 					isEmpty:
-						MOV eax, backgroundPixel;
-					JMP printPixel;
+						MOVZX eax, backgroundPixel;
+					JMP storePixel;
 
 					isPlayer:
-						MOV eax, playerPixel;
-					JMP printPixel;
+						MOVZX eax, playerPixel;
+					JMP storePixel;
 
-				printPixel:
+				storePixel:
+					MOV ebx, eax;
+
+					MOV eax, esi;
+					MOV ecx, screenWidth;
+					MUL ecx;
+					ADD eax, edi;
+
+					XCHG eax, ebx;
+
+					MOV [pixels + ebx], al;
+
 					CALL writeChar;
 
 			INC edi;
@@ -138,6 +190,9 @@ INCLUDE irvine32.inc
 		INC esi;
 		CMP esi, screenHeight;
 		JL everyRow;
+
+		
+		;CALL displayScreen;
 
 		ret;
 	renderScreen ENDP
@@ -243,7 +298,7 @@ INCLUDE irvine32.inc
 			CALL update;
 			CALL renderScreen;
 			CALL handleInput;
-			CALL dumpRegs;
+			;CALL dumpRegs;
 
 			MOV eax, 33;
 
