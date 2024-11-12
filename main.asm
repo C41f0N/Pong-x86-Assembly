@@ -16,6 +16,9 @@ INCLUDE irvine32.inc
 	playerOffset = 2;
 	playerWidth = 2;
 	
+	upKey = 26h;
+	downKey = 28h;
+
 .code
 	; // Function to render the screen
 	renderScreen PROC
@@ -125,10 +128,10 @@ INCLUDE irvine32.inc
 
 		CALL readKey;
 
-		CMP dx, 26h;
+		CMP dx, upKey;
 		JE up;
 
-		CMP dx, 28h; 
+		CMP dx, downKey; 
 		JE down;
 
 		JMP done;
