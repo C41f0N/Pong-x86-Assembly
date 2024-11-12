@@ -18,6 +18,7 @@ INCLUDE irvine32.inc
 	
 	upKey = 26h;
 	downKey = 28h;
+	quitKey = 51h;
 
 .code
 	; // Function to render the screen
@@ -134,6 +135,9 @@ INCLUDE irvine32.inc
 		CMP dx, downKey; 
 		JE down;
 
+		CMP dx, quitKey;
+		JE quit;
+
 		JMP done;
 
 		up:
@@ -143,7 +147,7 @@ INCLUDE irvine32.inc
 			JLE done;
 
 			DEC player1;
-			JMP done;
+		JMP done;
 
 		down:
 			MOV ebx, screenHeight;
@@ -154,7 +158,12 @@ INCLUDE irvine32.inc
 			JGE done;
 
 			INC player1;
-			JMP done;
+		JMP done;
+
+		quit:
+			CALL clrScr;
+			exit;
+		JMP done;
 
 		done: 
 
@@ -169,6 +178,7 @@ INCLUDE irvine32.inc
 		loop1:
 			CALL renderScreen;
 			CALL handleInput;
+			CALL dumpRegs;
 
 			MOV eax, 33;
 
