@@ -5,9 +5,10 @@ INCLUDE irvine32.inc
 	screenHeight DWORD 20;
 	screenWidth DWORD 80;
 
-	borderPixel DWORD 'O';
+	borderPixel DWORD 'X';
 	backgroundPixel DWORD ' ';
-	playerPixel DWORD 'o';
+	playerPixel DWORD '|';
+	ballPixel DWORD 'O'
 
 	; // Players info
 	player1 DWORD ?;
@@ -19,6 +20,9 @@ INCLUDE irvine32.inc
 	; // Ball info
 	ballx DWORD ?;
 	bally DWORD ?;
+
+	velx DWORD 1;
+	vely DWORD 1;
 
 	; // Key info
 	upKey = 26h;
@@ -103,8 +107,15 @@ INCLUDE irvine32.inc
 
 					notPlayer2:
 						; Check if ball
-					
-					JMP isEmpty;
+						CMP esi, ballY;
+						JNE isEmpty;
+
+						CMP edi, ballX;
+						JNE isEmpty;
+
+						MOV eax, ballPixel;
+
+					JMP printPixel;
 
 					isEmpty:
 						MOV eax, backgroundPixel;
@@ -194,12 +205,42 @@ INCLUDE irvine32.inc
 		ret;
 	initialize ENDP
 
+	update PROC
+
+		; Bouncing the ball
+		MOV eax, screenHeight;
+		DEC eax;
+
+		CMP ballY, eax;
+		JE hitY;
+
+		CMP ballY, 1;
+		JE hitY;
+
+		JMP moveBall;
+
+		hitY:
+			NEG velY;			
+		JMP moveBall;
+
+		moveBall:
+		; Moving the ball
+		MOV eax, velX;
+		ADD ballX, eax;
+
+		MOV eax, velY;
+		ADD ballY, eax;
+
+		ret;
+	update ENDP
+
 	main PROC
 
 		CALL initialize;
 		
 		gameLoop:
 
+			CALL update;
 			CALL renderScreen;
 			CALL handleInput;
 			CALL dumpRegs;
