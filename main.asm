@@ -262,6 +262,7 @@ INCLUDE irvine32.inc
 		; Bouncing the ball on the walls
 		MOV eax, screenHeight;
 		DEC eax;
+		DEC eax;
 
 		CMP ballY, eax;
 		JE hitY;
@@ -277,33 +278,37 @@ INCLUDE irvine32.inc
 
 		doneWalls:
 
-		; Bouncing ball on player
+		; Check collision with player 1
 		MOV eax, ballY;
 		DEC eax;
 
-		; Check collision with player 1
 		MOV ebx, screenWidth;
 		MOV edx, 0;
 		MUL ebx;
 
 		ADD eax, playerOffset;
-
+		
+		; Getting the pixel in x axis of player, but y axis of ball
 		MOVZX eax, [pixels + eax];
 
+		; If the pixel is not a player, then not colliding
 		CMP al, playerPixel;
 		JNE notColliding1;
 
+		; If the ball's x axis is one left of the player's, then not colliding
 		MOV eax, ballX;
+		DEC eax;
 		CMP eax, playerOffset;
-
 		JNE notColliding1;
 
-		CMP velX, 0;
-		JG velXPositive;
-		NEG velX;
+		; Getting the angle of the hit
+		MOV eax, ballY;
+		SUB eax, player1;
 
-		velXPositive:
-		;CALL readInt;
+
+
+		; Changing velocity as a result of the collision.
+		NEG velX;
 
 		notColliding1:
 
