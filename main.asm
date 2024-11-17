@@ -17,14 +17,14 @@ INCLUDE irvine32.inc
 	player2 DWORD ?;
 
 	playerOffset = 2;
-	playerWidth = 2;
+	playerWidth = 4;
 	
 	; // Ball info
 	ballx DWORD ?;
 	bally DWORD ?;
 
 	velx DWORD -1;
-	vely DWORD 1;
+	vely DWORD -1;
 
 	; // Key info
 	upKey = 26h;
@@ -265,14 +265,21 @@ INCLUDE irvine32.inc
 		DEC eax;
 
 		CMP ballY, eax;
-		JE hitY;
+		JGE hitBottom;
 
 		CMP ballY, 1;
-		JE hitY;
+		JLE hitTop;
 
 		JMP doneWalls;
 
-		hitY:
+		hitTop:
+			MOV ballY, 1;
+			NEG velY;			
+		JMP doneWalls;
+
+		hitBottom:
+			MOV ballY, screenHeight;
+			SUB ballY, 2;
 			NEG velY;			
 		JMP doneWalls;
 
@@ -280,7 +287,6 @@ INCLUDE irvine32.inc
 
 		; Check collision with player 1
 		MOV eax, ballY;
-		DEC eax;
 
 		MOV ebx, screenWidth;
 		MOV edx, 0;
@@ -301,9 +307,22 @@ INCLUDE irvine32.inc
 		CMP eax, playerOffset;
 		JNE notColliding1;
 
-		; Getting the angle of the hit
+		; Getting the offset of the hit (distance of the hit point to the center of the player)
 		MOV eax, ballY;
 		SUB eax, player1;
+
+		; Diving the offset by 2
+		;MOV ebx, 2;
+		;MOV edx, 0;
+		;DIV ebx;
+
+
+		; The resultant is now the vertical velocity
+		MOV vely, eax;
+		;CALL readInt;
+
+
+		offsetNotNegative:
 
 
 
@@ -323,12 +342,31 @@ INCLUDE irvine32.inc
 		ret;
 	update ENDP
 
+	checkGameOver PROC
+
+		CMP ballX, 0;
+		JL gameOver;
+
+		CMP ballX, screenWidth - 1;
+		JG gameOver;
+
+		JMP notGameOver;
+
+		gameOver:
+			exit;
+
+		notGameOver:
+
+		ret;
+	checkGameOver ENDP
+
 	main PROC
 
 		CALL initialize;
 		MOV ecx, 0;
 		gameLoop:
-
+			
+			CALL checkGameOver;
 			CALL update;
 			CALL renderScreen;
 			CALL handleInput;
