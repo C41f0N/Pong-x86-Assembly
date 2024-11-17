@@ -23,7 +23,7 @@ INCLUDE irvine32.inc
 	ballx DWORD ?;
 	bally DWORD ?;
 
-	velx DWORD 1;
+	velx DWORD -1;
 	vely DWORD 1;
 
 	; // Key info
@@ -191,9 +191,6 @@ INCLUDE irvine32.inc
 		CMP esi, screenHeight;
 		JL everyRow;
 
-		
-		;CALL displayScreen;
-
 		ret;
 	renderScreen ENDP
 
@@ -262,7 +259,7 @@ INCLUDE irvine32.inc
 
 	update PROC
 
-		; Bouncing the ball
+		; Bouncing the ball on the walls
 		MOV eax, screenHeight;
 		DEC eax;
 
@@ -272,11 +269,43 @@ INCLUDE irvine32.inc
 		CMP ballY, 1;
 		JE hitY;
 
-		JMP moveBall;
+		JMP doneWalls;
 
 		hitY:
 			NEG velY;			
-		JMP moveBall;
+		JMP doneWalls;
+
+		doneWalls:
+
+		; Bouncing ball on player
+		MOV eax, ballY;
+		DEC eax;
+
+		; Check collision with player 1
+		MOV ebx, screenWidth;
+		MOV edx, 0;
+		MUL ebx;
+
+		ADD eax, playerOffset;
+
+		MOVZX eax, [pixels + eax];
+
+		CMP al, playerPixel;
+		JNE notColliding1;
+
+		MOV eax, ballX;
+		CMP eax, playerOffset;
+
+		JNE notColliding1;
+
+		CMP velX, 0;
+		JG velXPositive;
+		NEG velX;
+
+		velXPositive:
+		;CALL readInt;
+
+		notColliding1:
 
 		moveBall:
 		; Moving the ball
@@ -292,19 +321,19 @@ INCLUDE irvine32.inc
 	main PROC
 
 		CALL initialize;
-		
+		MOV ecx, 0;
 		gameLoop:
 
 			CALL update;
 			CALL renderScreen;
 			CALL handleInput;
-			;CALL dumpRegs;
+			CALL dumpRegs;
 
 			MOV eax, 33;
 
 			CALL delay;
 			
-		JMP gameLoop;
+		LOOP gameLoop;
 
 
 	main ENDP
