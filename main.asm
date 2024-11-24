@@ -37,8 +37,17 @@ INCLUDE irvine32.inc
 	player1Score DWORD 0;
 	player2Score DWORd 0;
 
+	scoreToWin DWORD 3;
+
 	score1Prompt BYTE "Player 1 Score: ", 0;
-	score2Prompt BYTE "Player 2 Score: ", 0;
+	score2Prompt BYTE "                                              Player 2 Score: ", 0;
+
+	player1WonPrompt BYTE "                                        PLAYER 1 WON !", 0;
+	player2WonPrompt BYTE "                                        PLAYER 2 WON !", 0;
+
+	introductionPrompt BYTE "                  WELCOME TO PONG (Written in x86 Assembly)", 0;
+
+	ribbon BYTE "========================================================================================", 0;
 
 .code
 	
@@ -96,14 +105,6 @@ INCLUDE irvine32.inc
 
 		MOV eax, player1Score;
 		CALL writeDec;
-
-		MOV eax, ' ';
-		CALL writeChar;
-		CALL writeChar;
-		CALL writeChar;
-		CALL writeChar;
-		CALL writeChar;
-		CALL writeChar;
 
 		MOV edx, OFFSET score2Prompt;
 		CALL writeString;
@@ -498,38 +499,90 @@ INCLUDE irvine32.inc
 
 		noScore:
 		
+		ret;
 	updateScores ENDP
 
 	checkGameOver PROC
 
-		CMP ballX, 0;
-		JL gameOver;
+		MOV eax, player1Score;
+		CMP eax, scoreToWin;
+		JGE player1Won;
 
-		CMP ballX, screenWidth - 1;
-		JG gameOver;
+		MOV eax, player2Score;
+		CMP eax, scoreToWin;
+		JGE player2Won;
 
-		JMP notGameOver;
+		JMP noOneWon;
 
-		gameOver:
+		player1Won:
+			CALL clrscr;
+
+			MOV edx, OFFSET ribbon;
+			CALL writeString;
+			CALL crlf;
+
+			MOV edx, OFFSET player1WonPrompt;
+			CALL writeString;
+			CALL crlf;
+
+			MOV edx, OFFSET ribbon;
+			CALL writeString;
+			CALL crlf;
+			
+			MOV eax, 2000;
+			CALL delay;
 			exit;
+		JMP noOneWon;
 
-		notGameOver:
+		player2Won:
+			CALL clrscr;
+			MOV edx, OFFSET player2WonPrompt;
+			CALL writeString;
 
+			MOV eax, 1000;
+			CALL delay;
+			exit;
+		JMP noOneWon;
+
+		noOneWon:
 		ret;
 	checkGameOver ENDP
 
-	main PROC
+	introduce PROC
+		CALL clrscr;
 
+		MOV edx, OFFSET ribbon;
+		CALL writeString;
+		CALL crlf;
+
+		MOV edx, OFFSET introductionPrompt;
+		CALL writeString;
+		CALL crlf;
+
+		MOV edx, OFFSET ribbon;
+		CALL writeString;
+		CALL crlf;
+
+		MOV eax, 5000;
+		CALL delay;
+
+		CALL clrscr;
+
+		ret;
+	introduce ENDP
+
+	main PROC
+		
+		CALL introduce;
 		CALL initialize;
 		MOV ecx, 0;
 		gameLoop:
 			
-			;CALL checkGameOver;
+			CALL checkGameOver;
 			CALL update;
 			CALL renderScreen;
 			CALL handleInput;
-			CALL dumpRegs;
-
+			
 			MOV eax, 33;
 
 			;CALL delay;
