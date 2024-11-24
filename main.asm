@@ -27,10 +27,8 @@ INCLUDE irvine32.inc
 	vely DWORD -1;
 
 	; // Key info
-	upKey1 = 57h;
-	downKey1 = 53h;
-	upKey2 = 26h;
-	downKey2 = 28h;
+	upKey = 57h;
+	downKey = 53h;
 	quitKey = 51h;
 
 	; // Game info
@@ -265,10 +263,10 @@ INCLUDE irvine32.inc
 
 		CALL readKey;
 
-		CMP dx, upKey1;
+		CMP dx, upKey;
 		JE player1Up;
 
-		CMP dx, downKey1; 
+		CMP dx, downKey; 
 		JE player1Down;
 
 
@@ -491,6 +489,7 @@ INCLUDE irvine32.inc
 		JG player2Up;
 
 		player2Up:
+			; Moving up if already not at max height (taking player's own size into account)
 			MOV ebx, 0;
 			ADD ebx, playerWidth;
 			CMP player2, ebx;
@@ -500,6 +499,7 @@ INCLUDE irvine32.inc
 		JMP done;
 
 		player2Down:
+			; Moving down if already not at max height (taking player's own size into account)
 			MOV ebx, screenHeight;
 			DEC ebx;
 			SUB ebx, playerWidth;
@@ -543,7 +543,7 @@ INCLUDE irvine32.inc
 	updateScores ENDP
 
 	checkGameOver PROC
-
+		; Finishing game if anyone wins
 		MOV eax, player1Score;
 		CMP eax, scoreToWin;
 		JGE player1Won;
@@ -603,7 +603,7 @@ INCLUDE irvine32.inc
 		CALL writeString;
 		CALL crlf;
 
-		MOV eax, 5000;
+		MOV eax, 1000;
 		CALL delay;
 
 		diffInput:
