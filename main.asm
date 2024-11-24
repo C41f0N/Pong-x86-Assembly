@@ -46,6 +46,10 @@ INCLUDE irvine32.inc
 	player2WonPrompt BYTE "                                        PLAYER 2 WON !", 0;
 
 	introductionPrompt BYTE "                  WELCOME TO PONG (Written in x86 Assembly)", 0;
+	
+	player1Controls BYTE "Player 1:- UP: W DOWN: S", 0;
+	player2Controls BYTE "Player 2:- UP: Arrow Up DOWN: Arrow Down", 0;
+	otherControls BYTE "Quit: Q", 0;
 
 	ribbon BYTE "========================================================================================", 0;
 
@@ -234,8 +238,18 @@ INCLUDE irvine32.inc
 		JL everyRow;
 
 		
+		; Print Controls
+		MOV edx, OFFSET player1Controls;
+		CALL writeString;
+		CALL crlf;
 
+		MOV edx, OFFSET player2Controls;
+		CALL writeString;
+		CALL crlf;
 
+		MOV edx, OFFSET otherControls;
+		CALL writeString;
+		CALL crlf;
 
 		ret;
 	renderScreen ENDP
