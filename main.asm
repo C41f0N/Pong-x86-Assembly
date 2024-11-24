@@ -27,11 +27,18 @@ INCLUDE irvine32.inc
 	vely DWORD -1;
 
 	; // Key info
-	upKey1 = 26h;
-	downKey1 = 28h;
-	upKey2 = 57h;
-	downKey2 = 53h;
+	upKey1 = 57h;
+	downKey1 = 53h;
+	upKey2 = 26h;
+	downKey2 = 28h;
 	quitKey = 51h;
+
+	; // Game info
+	player1Score DWORD 0;
+	player2Score DWORd 0;
+
+	score1Prompt BYTE "Player 1 Score: ", 0;
+	score2Prompt BYTE "Player 2 Score: ", 0;
 
 .code
 	
@@ -82,6 +89,28 @@ INCLUDE irvine32.inc
 		MOV dh, 0;
 		MOV dl, 0;
 		CALL goToXY;
+
+		; Display Scores
+		MOV edx, OFFSET score1Prompt;
+		CALL writeString;
+
+		MOV eax, player1Score;
+		CALL writeDec;
+
+		MOV eax, ' ';
+		CALL writeChar;
+		CALL writeChar;
+		CALL writeChar;
+		CALL writeChar;
+		CALL writeChar;
+		CALL writeChar;
+
+		MOV edx, OFFSET score2Prompt;
+		CALL writeString;
+
+		MOV eax, player2Score;
+		CALL writeDec;
+		CALL crlf;
 
 		MOV esi, 0;
 		everyRow:
@@ -203,6 +232,10 @@ INCLUDE irvine32.inc
 		CMP esi, screenHeight;
 		JL everyRow;
 
+		
+
+
+
 		ret;
 	renderScreen ENDP
 
@@ -292,6 +325,8 @@ INCLUDE irvine32.inc
 	initialize PROC
 		MOV player1, 10;
 		MOV player2, 10;
+
+		MOV velY, -1;
 		
 		MOV ebx, 2;
 		MOV eax, screenWidth;
@@ -434,8 +469,36 @@ INCLUDE irvine32.inc
 		MOV eax, velY;
 		ADD ballY, eax;
 
+		CALL updateScores;
+
 		ret;
 	update ENDP
+
+	updateScores PROC
+		
+		CMP ballX, 0;
+		JL score2;
+
+		CMP ballX, screenWidth - 1;
+		JG score1;
+		
+		JMP noScore;
+
+		score1:
+			INC player1Score;
+			MOV velX, -1;
+			CALL initialize;
+		JMP noScore;
+
+		score2:
+			INC player2Score;
+			MOV velX, 1;
+			CALL initialize;
+		JMP noScore;
+
+		noScore:
+		
+	updateScores ENDP
 
 	checkGameOver PROC
 
@@ -461,7 +524,7 @@ INCLUDE irvine32.inc
 		MOV ecx, 0;
 		gameLoop:
 			
-			CALL checkGameOver;
+			;CALL checkGameOver;
 			CALL update;
 			CALL renderScreen;
 			CALL handleInput;
