@@ -35,9 +35,13 @@ INCLUDE irvine32.inc
 
 	; // Game info
 	player1Score DWORD 0;
-	player2Score DWORd 0;
+	player2Score DWORD 0;
+
+	difficulty DWORD 5;
 
 	scoreToWin DWORD 3;
+
+	difficultyPrompt BYTE "Enter your preffered difficulty level (0-4): ", 0;
 	score1Prompt BYTE "Player 1 Score: ", 0;
 	score2Prompt BYTE "                                              Player 2 Score: ", 0;
 
@@ -261,26 +265,12 @@ INCLUDE irvine32.inc
 
 		CALL readKey;
 
-		CMP velX, 0;
-		JG player2Input;
+		CMP dx, upKey1;
+		JE player1Up;
 
-			CMP dx, upKey1;
-			JE player1Up;
+		CMP dx, downKey1; 
+		JE player1Down;
 
-			CMP dx, downKey1; 
-			JE player1Down;
-
-		JMP playerInputDone;
-
-		player2Input:
-
-			CMP dx, upKey2;
-			JE player2Up;
-
-			CMP dx, downKey2;
-			JE player2Down;
-
-		playerInputDone:
 
 		CMP dx, quitKey;
 		JE quit;
@@ -305,26 +295,6 @@ INCLUDE irvine32.inc
 			JGE done;
 
 			INC player1;
-		JMP done;
-
-		player2Up:
-			MOV ebx, 0;
-			ADD ebx, playerWidth;
-			CMP player2, ebx;
-			JLE done;
-
-			DEC player2;
-		JMP done;
-
-		player2Down:
-			MOV ebx, screenHeight;
-			DEC ebx;
-			SUB ebx, playerWidth;
-				
-			CMP player2, ebx;
-			JGE done;
-
-			INC player2;
 		JMP done;
 
 		quit:
@@ -496,9 +466,54 @@ INCLUDE irvine32.inc
 		ADD ballY, eax;
 
 		CALL updateScores;
+		CALL movePlayer2;
 
 		ret;
 	update ENDP
+
+	movePlayer2 PROC
+
+		; Sabotaging player 2 based on difficulty level to reduce it's performance;
+		MOV eax, 10;
+		CALL randomRange;
+		CALL writeInt;
+		CMP eax, difficulty;
+		JGE done;
+
+
+		MOV eax, ballY;
+		SUB eax, player2;
+
+		CMP eax, 0;
+		JG player2Down;
+
+		CMP eax, 0;
+		JG player2Up;
+
+		player2Up:
+			MOV ebx, 0;
+			ADD ebx, playerWidth;
+			CMP player2, ebx;
+			JLE done;
+
+			DEC player2;
+		JMP done;
+
+		player2Down:
+			MOV ebx, screenHeight;
+			DEC ebx;
+			SUB ebx, playerWidth;
+				
+			CMP player2, ebx;
+			JGE done;
+
+			INC player2;
+		JMP done;
+
+
+		done:
+		ret;
+	movePlayer2 ENDP
 
 	updateScores PROC
 		
@@ -591,6 +606,22 @@ INCLUDE irvine32.inc
 		MOV eax, 5000;
 		CALL delay;
 
+		diffInput:
+			MOV edx, OFFSET difficultyPrompt;
+			CALL writeString;
+
+			CALL readInt;
+
+		CMP eax, 0;
+		JL diffInput;
+
+		CMP eax, 4;
+		JG diffInput;
+
+		ADD eax, 5;
+
+		MOV difficulty, eax;
+
 		CALL clrscr;
 
 		ret;
@@ -598,6 +629,7 @@ INCLUDE irvine32.inc
 
 	main PROC
 		
+		CALL randomize;
 		CALL introduce;
 		CALL initialize;
 		MOV ecx, 0;
