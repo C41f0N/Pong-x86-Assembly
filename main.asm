@@ -2,7 +2,7 @@ INCLUDE irvine32.inc
 
 .data
 	; // Screen Info
-	screenHeight = 40;
+	screenHeight = 25;
 	screenWidth = 80;
 
 	pixels BYTE screenHeight DUP(screenWidth DUP(?));
@@ -23,12 +23,14 @@ INCLUDE irvine32.inc
 	ballx DWORD ?;
 	bally DWORD ?;
 
-	velx DWORD -1;
+	velx DWORD 1;
 	vely DWORD -1;
 
 	; // Key info
-	upKey = 26h;
-	downKey = 28h;
+	upKey1 = 26h;
+	downKey1 = 28h;
+	upKey2 = 57h;
+	downKey2 = 53h;
 	quitKey = 51h;
 
 .code
@@ -206,20 +208,38 @@ INCLUDE irvine32.inc
 
 	handleInput PROC
 
+		; Check if ball is coming to player 1 or player 2
+		; Then listen for inputs accordingly
+
 		CALL readKey;
 
-		CMP dx, upKey;
-		JE up;
+		CMP velX, 0;
+		JG player2Input;
 
-		CMP dx, downKey; 
-		JE down;
+			CMP dx, upKey1;
+			JE player1Up;
+
+			CMP dx, downKey1; 
+			JE player1Down;
+
+		JMP playerInputDone;
+
+		player2Input:
+
+			CMP dx, upKey2;
+			JE player2Up;
+
+			CMP dx, downKey2;
+			JE player2Down;
+
+		playerInputDone:
 
 		CMP dx, quitKey;
 		JE quit;
 
 		JMP done;
 
-		up:
+		player1Up:
 			MOV ebx, 0;
 			ADD ebx, playerWidth;
 			CMP player1, ebx;
@@ -228,7 +248,7 @@ INCLUDE irvine32.inc
 			DEC player1;
 		JMP done;
 
-		down:
+		player1Down:
 			MOV ebx, screenHeight;
 			DEC ebx;
 			SUB ebx, playerWidth;
@@ -237,6 +257,26 @@ INCLUDE irvine32.inc
 			JGE done;
 
 			INC player1;
+		JMP done;
+
+		player2Up:
+			MOV ebx, 0;
+			ADD ebx, playerWidth;
+			CMP player2, ebx;
+			JLE done;
+
+			DEC player2;
+		JMP done;
+
+		player2Down:
+			MOV ebx, screenHeight;
+			DEC ebx;
+			SUB ebx, playerWidth;
+				
+			CMP player2, ebx;
+			JGE done;
+
+			INC player2;
 		JMP done;
 
 		quit:
@@ -340,6 +380,51 @@ INCLUDE irvine32.inc
 		NEG velX;
 
 		notColliding1:
+			
+			; Checking collision with player 2
+			MOV eax, ballY;
+
+			MOV ebx, screenWidth;
+			MOV edx, 0;
+			MUL ebx;
+
+			ADD eax, screenWidth;
+			SUB eax, playerOffset;
+			DEC eax;
+		
+			; Getting the pixel in x axis of player, but y axis of ball
+			MOVZX eax, [pixels + eax];
+
+			; If the pixel is not a player, then not colliding
+			CMP al, playerPixel;
+			JNE notColliding2;
+			
+			; If the ball's x axis is one right of the player's, then not colliding
+			MOV eax, ballX;
+			INC eax;
+			MOV edx, screenWidth;
+			SUB edx, playerOffset;
+			DEC edx;
+			CMP eax, edx;
+			JNE notColliding2;
+
+			; Getting the offset of the hit (distance of the hit point to the center of the player)
+			MOV eax, ballY;
+			SUB eax, player2;
+
+			; Diving the offset by 2
+			;MOV ebx, 2;
+			;MOV edx, 0;
+			;DIV ebx;
+
+
+			; The resultant is now the vertical velocity
+			MOV vely, eax;
+			;CALL readInt;
+
+			NEG velX;
+
+			notColliding2:
 
 		moveBall:
 		; Moving the ball
