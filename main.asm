@@ -38,7 +38,6 @@ INCLUDE irvine32.inc
 	player2Score DWORd 0;
 
 	scoreToWin DWORD 3;
-
 	score1Prompt BYTE "Player 1 Score: ", 0;
 	score2Prompt BYTE "                                              Player 2 Score: ", 0;
 
@@ -47,9 +46,10 @@ INCLUDE irvine32.inc
 
 	introductionPrompt BYTE "                  WELCOME TO PONG (Written in x86 Assembly)", 0;
 	
-	player1Controls BYTE "Player 1:- UP: W DOWN: S", 0;
-	player2Controls BYTE "Player 2:- UP: Arrow Up DOWN: Arrow Down", 0;
-	otherControls BYTE "Quit: Q", 0;
+	; screen width for ref  --------------------------------------------------------------------------------
+	player1Controls BYTE "                            Player 1:- UP: W DOWN: S", 0;
+	player2Controls BYTE "                   Player 2:- UP: Arrow Up DOWN: Arrow Down", 0;
+	otherControls BYTE "                                    Quit: Q", 0;
 
 	ribbon BYTE "========================================================================================", 0;
 
@@ -417,7 +417,13 @@ INCLUDE irvine32.inc
 		;DIV ebx;
 
 
-		; The resultant is now the vertical velocity
+		; The resultant is now the vertical velocity, if it is 0, then it is set to 1
+		; to avoid exceptionally slow movement.
+		CMP eax, 0;
+		JNE noFixNeeded1;
+		MOV eax, 1;
+
+		noFixNeeded1:
 		MOV vely, eax;
 		;CALL readInt;
 
@@ -468,9 +474,14 @@ INCLUDE irvine32.inc
 			;DIV ebx;
 
 
-			; The resultant is now the vertical velocity
+			; The resultant is now the vertical velocity, if it is 0, then it is set to 1
+			; to avoid exceptionally slow movement.
+			CMP eax, 0;
+			JNE noFixNeeded2;
+			MOV eax, 1;
+
+			noFixNeeded2:
 			MOV vely, eax;
-			;CALL readInt;
 
 			NEG velX;
 
