@@ -2,7 +2,7 @@ INCLUDE irvine32.inc
 
 .data
 	; // Screen Info
-	screenHeight = 20;
+	screenHeight = 40;
 	screenWidth = 80;
 
 	pixels BYTE screenHeight DUP(screenWidth DUP(?));
@@ -135,8 +135,18 @@ INCLUDE irvine32.inc
 					
 					; If not player 1, then check if player 2
 					notPlayer1:
-						CMP esi, player2;
-						JNE notPlayer2;
+						MOV ebx, player2;
+						SUB ebx, playerWidth;
+
+						CMP esi, ebx;
+						JLE notPlayer2;
+
+						MOV ebx, player2;
+						ADD ebx, playerWidth;
+
+						CMP esi, ebx;
+						JGE notPlayer2;
+
 
 						MOV edx, screenWidth;
 						SUB edx, playerOffset;
@@ -242,7 +252,7 @@ INCLUDE irvine32.inc
 	initialize PROC
 		MOV player1, 10;
 		MOV player2, 10;
-
+		
 		MOV ebx, 2;
 		MOV eax, screenWidth;
 		MOV edx, 0;
@@ -374,7 +384,7 @@ INCLUDE irvine32.inc
 
 			MOV eax, 33;
 
-			CALL delay;
+			;CALL delay;
 			
 		LOOP gameLoop;
 
